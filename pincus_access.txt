@@ -1,0 +1,14 @@
+==================================================
+PINCUS WORK - PROJEKT ZUGANGSDATEN & LINKS
+==================================================
+Live-URL (Web-App): https://pincus-work-app.netlify.app
+Netlify Dashboard:  https://app.netlify.com/projects/pincus-work-app
+Lokaler Projektpfad: ~/pincus_work
+
+Enthaltene Module:
+- Dashboard (Übersicht)
+- Zeiterfassung (Stunden & Tätigkeiten)
+- Baustellen-Fotos (Dokumentation)
+- Projekte & Leistungen (Baumpflege, Erdarbeiten etc.)
+- Team & Mitarbeiter (René Pincus & Crew)
+==================================================

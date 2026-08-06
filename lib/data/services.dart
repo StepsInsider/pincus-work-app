@@ -1,0 +1,15 @@
+const List<String> pincusServices = [
+  'Garten- & Landschaftsgestaltung',
+  'Pflege & Erhalt',
+  'Rollrasen',
+  'Zaunbau',
+  'Pflasterung & Einfahrten',
+  'Terrassenbau',
+  'Poolbau',
+  'Baumpflege',
+  'Baumfällarbeiten',
+  'Wurzelfräsen',
+  'Beseitigung von Sturmschäden',
+  'Drainage',
+  'Schüttgut & Erdarbeiten',
+];
