@@ -1,0 +1,23 @@
+{
+  "recommendations": [
+    "Dart-Code.flutter",
+    "fabiospampinato.vscode-arrow",
+    "Dart-Code.flutter-riverpod-snippets",
+    "usernamehw.errorlens",
+    "dart-code.pubspec-assist",
+    "mtxr.sqltools",
+    "mtxr.sqltools-driver-pg",
+    "ckolkman.vscode-postgres",
+    "humao.rest-client",
+    "dsznajder.es7-react-js-snippets",
+    "bradlc.vscode-tailwindcss",
+    "swellaby.vscode-typescript-imports",
+    "esbenp.prettier-vscode",
+    "eamodio.gitlens",
+    "GitHub.vscode-pull-request-github",
+    "ms-azuretools.vscode-docker",
+    "ms-vscode-remote.remote-containers",
+    "GitHub.copilot",
+    "Anthropic.claude-code"
+  ]
+}

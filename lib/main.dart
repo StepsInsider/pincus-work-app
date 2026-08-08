@@ -1,21 +1,26 @@
 import 'package:flutter/material.dart';
-import 'screens/dashboard_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-void main() {
-  runApp(const PincusWorkApp());
+import 'core/config/supabase_config.dart';
+import 'presentation/routing/app_router.dart';
+import 'theme/app_theme.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await SupabaseConfig.initialize();
+
+  runApp(const ProviderScope(child: PincusWorkApp()));
 }
 
 class PincusWorkApp extends StatelessWidget {
-  const PincusWorkApp({Key? key}) : super(key: key);
+  const PincusWorkApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Pincus Work',
-      theme: ThemeData(
-        primarySwatch: Colors.green,
-      ),
-      home: const DashboardScreen(),
+    return MaterialApp.router(
+      title: 'Pincus Work ERP',
+      theme: AppTheme.light,
+      routerConfig: appRouter,
       debugShowCheckedModeBanner: false,
     );
   }

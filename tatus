@@ -1,0 +1,31 @@
+[1mdiff --git a/netlify.toml b/netlify.toml[m
+[1mindex cadfafc..43793cb 100644[m
+[1m--- a/netlify.toml[m
+[1m+++ b/netlify.toml[m
+[36m@@ -1,21 +1,7 @@[m
+[31m-# example netlify.toml[m
+ [build][m
+[31m-  command = "flutter build web --release"[m
+[31m-  functions = "netlify/functions"[m
+[31m-  publish = "build/web"[m
+[32m+[m[32mpublish = "build/web"[m
+ [m
+[31m-  ## Uncomment to use this redirect for Single Page Applications like create-react-app.[m
+[31m-  ## Not needed for static site generators.[m
+[31m-  #[[redirects]][m
+[31m-  #  from = "/*"[m
+[31m-  #  to = "/index.html"[m
+[31m-  #  status = 200[m
+[31m-[m
+[31m-  ## (optional) Settings for Netlify Dev[m
+[31m-  ## https://github.com/netlify/cli/blob/main/docs/netlify-dev.md#project-detection[m
+[31m-  #[dev][m
+[31m-  #  command = "yarn start" # Command to start your dev server[m
+[31m-  #  port = 3000 # Port that the dev server will be listening on[m
+[31m-  #  publish = "dist" # Folder with the static content for _redirect file[m
+[31m-[m
+[31m-  ## more info on configuring this file: https://ntl.fyi/file-based-build-config[m
+[32m+[m[32m[[redirects]][m
+[32m+[m[32mfrom = "/*"[m
+[32m+[m[32mto = "/index.html"[m
+[32m+[m[32mstatus = 200[m

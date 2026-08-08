@@ -1,0 +1,25 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Flutter: Launch App",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Flutter: Launch Web",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "args": ["-d", "chrome"],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Attach to Flutter",
+      "request": "attach",
+      "type": "dart"
+    }
+  ]
+}

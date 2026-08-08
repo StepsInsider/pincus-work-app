@@ -1,0 +1,17 @@
+{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit"
+  },
+  "files.exclude": {
+    "**/.idea": true,
+    "**/.metadata": true,
+    "**/build": true,
+    "**/.dart_tool": true
+  },
+  "dart.lineLength": 100,
+  "dart.showDartFixes": true,
+  "sqltools.useNodeRuntime": true,
+  "sqltools.connections": []
+}
