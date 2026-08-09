@@ -4,7 +4,7 @@ part 'baustelle_model.freezed.dart';
 part 'baustelle_model.g.dart';
 
 @freezed
-class Baustelle with _$Baustelle {
+abstract class Baustelle with _$Baustelle {
   const factory Baustelle({
     required String id,
     @JsonKey(name: 'company_id') required String companyId,

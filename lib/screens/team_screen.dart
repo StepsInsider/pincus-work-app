@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class TeamScreen extends StatelessWidget {
-  const TeamScreen({Key? key}) : super(key: key);
+  const TeamScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

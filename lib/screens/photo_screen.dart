@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/app_data.dart';
 
 class PhotoScreen extends StatefulWidget {
-  const PhotoScreen({Key? key}) : super(key: key);
+  const PhotoScreen({super.key});
 
   @override
   State<PhotoScreen> createState() => _PhotoScreenState();
@@ -36,7 +36,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
             ),
             const SizedBox(height: 10),
             DropdownButtonFormField<String>(
-              value: _selectedCategory,
+              initialValue: _selectedCategory,
               items: const [
                 DropdownMenuItem(value: 'Vorher', child: Text('Vorher')),
                 DropdownMenuItem(value: 'Währenddessen', child: Text('Währenddessen')),

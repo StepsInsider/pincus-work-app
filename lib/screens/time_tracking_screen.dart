@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/app_data.dart';
 
 class TimeTrackingScreen extends StatefulWidget {
-  const TimeTrackingScreen({Key? key}) : super(key: key);
+  const TimeTrackingScreen({super.key});
 
   @override
   State<TimeTrackingScreen> createState() => _TimeTrackingScreenState();
@@ -31,7 +31,7 @@ class _TimeTrackingScreenState extends State<TimeTrackingScreen> {
             ),
             const SizedBox(height: 10),
             DropdownButtonFormField<String>(
-              value: _selectedProject,
+              initialValue: _selectedProject,
               items: const [
                 DropdownMenuItem(value: 'Projekt 1: Baumpflege Kamen', child: Text('Baumpflege Kamen')),
                 DropdownMenuItem(value: 'Projekt 2: Pflasterung Unna', child: Text('Pflasterung Unna')),
