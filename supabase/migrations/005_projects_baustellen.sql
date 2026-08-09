@@ -1,42 +1,29 @@
-CREATE TABLE public.baustellen (
+ALTER TABLE public.baustellen
+    ADD COLUMN IF NOT EXISTS company_id UUID;
 
-id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+ALTER TABLE public.baustellen
+    ADD COLUMN IF NOT EXISTS title TEXT;
 
-company_id UUID NOT NULL
-REFERENCES public.companies(id)
-ON DELETE CASCADE,
+ALTER TABLE public.baustellen
+    ADD COLUMN IF NOT EXISTS client_name TEXT;
 
+ALTER TABLE public.baustellen
+    ADD COLUMN IF NOT EXISTS address TEXT;
 
-title TEXT NOT NULL,
+ALTER TABLE public.baustellen
+    ADD COLUMN IF NOT EXISTS budget NUMERIC(12,2);
 
+ALTER TABLE public.baustellen
+    ADD COLUMN IF NOT EXISTS start_date DATE;
 
-client_name TEXT NOT NULL,
+ALTER TABLE public.baustellen
+    ADD COLUMN IF NOT EXISTS end_date DATE;
 
+ALTER TABLE public.baustellen
+    ALTER COLUMN status SET DEFAULT 'active';
 
-address TEXT NOT NULL,
-
-
-status TEXT DEFAULT 'active',
-
-
-latitude DOUBLE PRECISION,
-
-longitude DOUBLE PRECISION,
-
-
-budget NUMERIC(12,2),
-
-
-start_date DATE,
-
-end_date DATE,
-
-
-created_at TIMESTAMPTZ DEFAULT NOW(),
-
-updated_at TIMESTAMPTZ DEFAULT NOW()
-
-);
-
-
-ALTER TABLE public.baustellen ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.baustellen
+    ADD CONSTRAINT baustellen_company_id_fkey
+    FOREIGN KEY (company_id)
+    REFERENCES public.companies(id)
+    ON DELETE CASCADE;

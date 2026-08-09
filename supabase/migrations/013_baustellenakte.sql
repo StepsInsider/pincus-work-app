@@ -8,7 +8,7 @@
 
 CREATE TABLE IF NOT EXISTS public.baustellen_dokumente (
 
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
 
     company_id UUID NOT NULL
     REFERENCES public.companies(id)
@@ -43,7 +43,7 @@ ON public.baustellen_dokumente(baustelle_id);
 
 CREATE TABLE IF NOT EXISTS public.baustellen_checklisten (
 
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
 
     company_id UUID NOT NULL
     REFERENCES public.companies(id)
@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS public.baustellen_checklisten (
 
 CREATE TABLE IF NOT EXISTS public.baustellen_maengel (
 
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
 
     company_id UUID NOT NULL
     REFERENCES public.companies(id)
@@ -122,7 +122,7 @@ CREATE TABLE IF NOT EXISTS public.baustellen_maengel (
 
 CREATE TABLE IF NOT EXISTS public.baustellen_mitarbeiter (
 
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
 
     company_id UUID NOT NULL
     REFERENCES public.companies(id)

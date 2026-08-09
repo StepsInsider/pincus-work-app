@@ -1,6 +1,6 @@
 CREATE TABLE public.companies (
 
-id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
 
 name TEXT NOT NULL,
 
