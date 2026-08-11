@@ -1,92 +1,79 @@
 import 'package:flutter/material.dart';
+
 import '../models/app_data.dart';
 
 class TimeTrackingScreen extends StatefulWidget {
   const TimeTrackingScreen({super.key});
-
   @override
   State<TimeTrackingScreen> createState() => _TimeTrackingScreenState();
 }
 
 class _TimeTrackingScreenState extends State<TimeTrackingScreen> {
-  final List<TimeEntry> _entries = [];
+  final _entries = <TimeEntry>[];
   final _employeeController = TextEditingController();
   final _notesController = TextEditingController();
-  String _selectedProject = 'Projekt 1: Baumpflege Kamen';
+  String _selectedProject = 'Baumpflege Kamen';
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Zeiterfassung'),
-        backgroundColor: Colors.green[800],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _employeeController,
-              decoration: const InputDecoration(labelText: 'Mitarbeiter Name'),
-            ),
+  void dispose() {
+    _employeeController.dispose();
+    _notesController.dispose();
+    super.dispose();
+  }
+
+  void _addEntry() {
+    if (_employeeController.text.trim().isEmpty) return;
+    final now = DateTime.now();
+    setState(() {
+      _entries.add(TimeEntry(
+        id: now.microsecondsSinceEpoch.toString(),
+        employeeName: _employeeController.text.trim(),
+        projectId: _selectedProject,
+        startTime: now.subtract(const Duration(hours: 8)),
+        endTime: now,
+        notes: _notesController.text.trim(),
+      ));
+      _notesController.clear();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(title: const Text('Zeiterfassung')),
+        body: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(children: [
+            TextField(controller: _employeeController, decoration: const InputDecoration(labelText: 'Mitarbeitername')),
             const SizedBox(height: 10),
             DropdownButtonFormField<String>(
               initialValue: _selectedProject,
-              items: const [
-                DropdownMenuItem(value: 'Projekt 1: Baumpflege Kamen', child: Text('Baumpflege Kamen')),
-                DropdownMenuItem(value: 'Projekt 2: Pflasterung Unna', child: Text('Pflasterung Unna')),
-                DropdownMenuItem(value: 'Projekt 3: Erdarbeiten Dortmund', child: Text('Erdarbeiten Dortmund')),
-              ],
-              onChanged: (val) => setState(() => _selectedProject = val!),
               decoration: const InputDecoration(labelText: 'Baustelle / Projekt'),
+              items: const ['Baumpflege Kamen', 'Pflasterung Unna', 'Erdarbeiten Dortmund']
+                  .map((project) => DropdownMenuItem(value: project, child: Text(project)))
+                  .toList(),
+              onChanged: (value) => setState(() => _selectedProject = value!),
             ),
             const SizedBox(height: 10),
-            TextField(
-              controller: _notesController,
-              decoration: const InputDecoration(labelText: 'Tätigkeit / Notiz'),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.green[800]),
-              onPressed: () {
-                if (_employeeController.text.isNotEmpty) {
-                  setState(() {
-                    _entries.add(
-                      TimeEntry(
-                        id: DateTime.now().toString(),
-                        employeeName: _employeeController.text,
-                        projectId: _selectedProject,
-                        startTime: DateTime.now().subtract(const Duration(hours: 8)),
-                        endTime: DateTime.now(),
-                        notes: _notesController.text,
-                      ),
-                    );
-                    _notesController.clear();
-                  });
-                }
-              },
-              icon: const Icon(Icons.add),
-              label: const Text('8 Stunden buchen'),
-            ),
-            const SizedBox(height: 20),
+            TextField(controller: _notesController, decoration: const InputDecoration(labelText: 'Tätigkeit / Notiz')),
+            const SizedBox(height: 16),
+            FilledButton.icon(onPressed: _addEntry, icon: const Icon(Icons.add), label: const Text('8 Stunden buchen')),
+            const SizedBox(height: 16),
             Expanded(
-              child: ListView.builder(
-                itemCount: _entries.length,
-                itemBuilder: (context, index) {
-                  final entry = _entries[index];
-                  return Card(
-                    child: ListTile(
-                      title: Text('${entry.employeeName} - ${entry.projectId}'),
-                      subtitle: Text('Notiz: ${entry.notes} (${entry.duration.inHours} Std.)'),
-                      trailing: const Icon(Icons.check_circle, color: Colors.green),
+              child: _entries.isEmpty
+                  ? const Center(child: Text('Noch keine Zeiteinträge.'))
+                  : ListView.builder(
+                      itemCount: _entries.length,
+                      itemBuilder: (context, index) {
+                        final entry = _entries[index];
+                        return ListTile(
+                          leading: const Icon(Icons.check_circle, color: Colors.green),
+                          title: Text('${entry.employeeName} – ${entry.projectId}'),
+                          subtitle: Text('${entry.notes.isEmpty ? 'Ohne Notiz' : entry.notes} (${entry.duration.inHours} Std.)'),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
             ),
-          ],
+          ]),
         ),
-      ),
-    );
-  }
+      );
 }
