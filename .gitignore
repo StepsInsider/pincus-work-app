@@ -46,3 +46,8 @@ app.*.map.json
 
 # Local Netlify folder
 .netlify
+node_modules/
+flutter_application_1/
+pincus_work_src.zip
+run_audit.sh
+run_master_audit.sh
