@@ -252,7 +252,7 @@ class _TimeTrackingScreenState extends State<TimeTrackingScreen> {
                           ),
                           const SizedBox(height: 16),
                           DropdownButtonFormField<String>(
-                            value: _employeeId,
+                            initialValue: _employeeId,
                             decoration: const InputDecoration(
                               labelText: 'Mitarbeiter',
                               border: OutlineInputBorder(),
@@ -273,7 +273,7 @@ class _TimeTrackingScreenState extends State<TimeTrackingScreen> {
                           ),
                           const SizedBox(height: 12),
                           DropdownButtonFormField<String>(
-                            value: _customerId,
+                            initialValue: _customerId,
                             decoration: const InputDecoration(
                               labelText: 'Kunde',
                               border: OutlineInputBorder(),
@@ -300,7 +300,7 @@ class _TimeTrackingScreenState extends State<TimeTrackingScreen> {
                           ),
                           const SizedBox(height: 12),
                           DropdownButtonFormField<String>(
-                            value:
+                            initialValue:
                                 locations.any(
                                   (item) =>
                                       item['id'].toString() == _locationId,

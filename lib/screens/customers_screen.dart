@@ -190,7 +190,9 @@ class _CustomersScreenState extends State<CustomersScreen> {
                       .update(payload)
                       .eq('id', customer.id);
                 }
-                if (context.mounted) Navigator.pop(context, true);
+                if (context.mounted) {
+                  Navigator.pop(context, true);
+                }
               } catch (error) {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -211,7 +213,9 @@ class _CustomersScreenState extends State<CustomersScreen> {
     emailController.dispose();
     addressController.dispose();
     notesController.dispose();
-    if (saved == true) await _loadCustomers();
+    if (saved == true) {
+      await _loadCustomers();
+    }
   }
 
   Future<void> _showLocationDialog(
@@ -291,10 +295,11 @@ class _CustomersScreenState extends State<CustomersScreen> {
                     .maybeSingle();
                 final companyId =
                     profile?['company_id']?.toString() ?? customer.companyId;
-                if (companyId == null)
+                if (companyId == null) {
                   throw Exception(
                     'Dem Benutzer ist noch kein Unternehmen zugeordnet.',
                   );
+                }
                 final payload = {
                   'company_id': companyId,
                   'kunden_id': customer.id,
@@ -313,7 +318,9 @@ class _CustomersScreenState extends State<CustomersScreen> {
                       .update(payload)
                       .eq('id', location.id);
                 }
-                if (context.mounted) Navigator.pop(context, true);
+                if (context.mounted) {
+                  Navigator.pop(context, true);
+                }
               } catch (error) {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -333,7 +340,9 @@ class _CustomersScreenState extends State<CustomersScreen> {
     postcodeController.dispose();
     cityController.dispose();
     notesController.dispose();
-    if (saved == true) await _loadCustomers();
+    if (saved == true) {
+      await _loadCustomers();
+    }
   }
 
   Future<void> _deleteCustomer(Customer customer) async {
@@ -361,10 +370,11 @@ class _CustomersScreenState extends State<CustomersScreen> {
       await _supabase.from('kunden').delete().eq('id', customer.id);
       await _loadCustomers();
     } catch (error) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Löschen fehlgeschlagen: $error')),
         );
+      }
     }
   }
 
@@ -503,7 +513,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                                           _showLocationDialog(customer),
                                     ),
                                     const Divider(height: 1),
-                                    ButtonBar(
+                                    OverflowBar(
                                       children: [
                                         TextButton.icon(
                                           onPressed: () => _showCustomerDialog(
