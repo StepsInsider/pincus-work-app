@@ -59,7 +59,9 @@ class _TimeTrackingScreenState extends State<TimeTrackingScreen> {
           .order('name');
       final entries = await _supabase
           .from('zeiterfassung')
-          .select('id,mitarbeiter_id,standort_id,start_zeit,end_zeit,pause_minuten,notiz')
+          .select(
+            'id,mitarbeiter_id,standort_id,start_zeit,end_zeit,pause_minuten,notiz',
+          )
           .order('start_zeit', ascending: false)
           .limit(30);
 
@@ -69,11 +71,16 @@ class _TimeTrackingScreenState extends State<TimeTrackingScreen> {
         _customers = List<Map<String, dynamic>>.from(customers);
         _locations = List<Map<String, dynamic>>.from(locations);
         _entries = List<Map<String, dynamic>>.from(entries);
-        _employeeId ??= _employees.isNotEmpty ? _employees.first['id'].toString() : null;
-        _activeEntryId = _entries.cast<Map<String, dynamic>?>().firstWhere(
+        _employeeId ??= _employees.isNotEmpty
+            ? _employees.first['id'].toString()
+            : null;
+        _activeEntryId = _entries
+            .cast<Map<String, dynamic>?>()
+            .firstWhere(
               (entry) => entry?['end_zeit'] == null,
               orElse: () => null,
-            )?['id']?.toString();
+            )?['id']
+            ?.toString();
         _loading = false;
       });
     } catch (error) {
@@ -85,37 +92,40 @@ class _TimeTrackingScreenState extends State<TimeTrackingScreen> {
     }
   }
 
-  List<Map<String, dynamic>> get _filteredLocations =>
-      _locations.where((location) => location['kunden_id']?.toString() == _customerId).toList();
+  List<Map<String, dynamic>> get _filteredLocations => _locations
+      .where((location) => location['kunden_id']?.toString() == _customerId)
+      .toList();
 
   String _customerName(String? id) {
     final row = _customers.cast<Map<String, dynamic>?>().firstWhere(
-          (item) => item?['id']?.toString() == id,
-          orElse: () => null,
-        );
+      (item) => item?['id']?.toString() == id,
+      orElse: () => null,
+    );
     return (row?['name'] ?? row?['firmenname'] ?? 'Kunde').toString();
   }
 
   String _employeeName(String? id) {
     final row = _employees.cast<Map<String, dynamic>?>().firstWhere(
-          (item) => item?['id']?.toString() == id,
-          orElse: () => null,
-        );
+      (item) => item?['id']?.toString() == id,
+      orElse: () => null,
+    );
     return (row?['name'] ?? 'Mitarbeiter').toString();
   }
 
   String _locationName(String? id) {
     final row = _locations.cast<Map<String, dynamic>?>().firstWhere(
-          (item) => item?['id']?.toString() == id,
-          orElse: () => null,
-        );
+      (item) => item?['id']?.toString() == id,
+      orElse: () => null,
+    );
     return (row?['name'] ?? 'Standort').toString();
   }
 
   Future<void> _startWork() async {
     if (_employeeId == null || _locationId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Bitte Mitarbeiter, Kunde und Standort auswählen.')),
+        const SnackBar(
+          content: Text('Bitte Mitarbeiter, Kunde und Standort auswählen.'),
+        ),
       );
       return;
     }
@@ -141,7 +151,9 @@ class _TimeTrackingScreenState extends State<TimeTrackingScreen> {
     } catch (error) {
       if (!mounted) return;
       setState(() => _saving = false);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Start fehlgeschlagen: $error')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Start fehlgeschlagen: $error')));
     }
   }
 
@@ -150,9 +162,10 @@ class _TimeTrackingScreenState extends State<TimeTrackingScreen> {
     if (id == null) return;
     setState(() => _saving = true);
     try {
-      await _supabase.from('zeiterfassung').update({
-        'end_zeit': DateTime.now().toUtc().toIso8601String(),
-      }).eq('id', id);
+      await _supabase
+          .from('zeiterfassung')
+          .update({'end_zeit': DateTime.now().toUtc().toIso8601String()})
+          .eq('id', id);
       if (!mounted) return;
       setState(() {
         _activeEntryId = null;
@@ -162,7 +175,9 @@ class _TimeTrackingScreenState extends State<TimeTrackingScreen> {
     } catch (error) {
       if (!mounted) return;
       setState(() => _saving = false);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Stoppen fehlgeschlagen: $error')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Stoppen fehlgeschlagen: $error')));
     }
   }
 
@@ -172,7 +187,7 @@ class _TimeTrackingScreenState extends State<TimeTrackingScreen> {
     if (start == null) return Duration.zero;
     final effectiveEnd = end ?? DateTime.now().toUtc();
     final pause = (entry['pause_minuten'] as num?)?.toInt() ?? 0;
-    return effectiveEnd.difference(start).subtract(Duration(minutes: pause));
+    return effectiveEnd.difference(start) - Duration(minutes: pause);
   }
 
   String _formatDuration(Duration duration) {
@@ -187,101 +202,192 @@ class _TimeTrackingScreenState extends State<TimeTrackingScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Zeiterfassung'),
-        actions: [IconButton(onPressed: _loadData, icon: const Icon(Icons.refresh), tooltip: 'Aktualisieren')],
+        actions: [
+          IconButton(
+            onPressed: _loadData,
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Aktualisieren',
+          ),
+        ],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(child: Padding(padding: const EdgeInsets.all(24), child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  const Icon(Icons.error_outline, size: 48),
-                  const SizedBox(height: 12),
-                  Text(_error!, textAlign: TextAlign.center),
-                  const SizedBox(height: 12),
-                  FilledButton.icon(onPressed: _loadData, icon: const Icon(Icons.refresh), label: const Text('Erneut versuchen')),
-                ])))
-              : RefreshIndicator(
-                  onRefresh: _loadData,
-                  child: ListView(
-                    padding: const EdgeInsets.all(16),
-                    children: [
-                      Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              const Text('Arbeitszeit erfassen', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                              const SizedBox(height: 16),
-                              DropdownButtonFormField<String>(
-                                value: _employeeId,
-                                decoration: const InputDecoration(labelText: 'Mitarbeiter', border: OutlineInputBorder()),
-                                items: _employees.map((employee) => DropdownMenuItem<String>(
-                                  value: employee['id'].toString(),
-                                  child: Text('${employee['name']} – ${employee['rolle'] ?? 'Mitarbeiter'}'),
-                                )).toList(),
-                                onChanged: _activeEntryId == null ? (value) => setState(() => _employeeId = value) : null,
-                              ),
-                              const SizedBox(height: 12),
-                              DropdownButtonFormField<String>(
-                                value: _customerId,
-                                decoration: const InputDecoration(labelText: 'Kunde', border: OutlineInputBorder()),
-                                items: _customers.map((customer) => DropdownMenuItem<String>(
-                                  value: customer['id'].toString(),
-                                  child: Text((customer['name'] ?? customer['firmenname'] ?? 'Kunde').toString()),
-                                )).toList(),
-                                onChanged: _activeEntryId == null ? (value) => setState(() { _customerId = value; _locationId = null; }) : null,
-                              ),
-                              const SizedBox(height: 12),
-                              DropdownButtonFormField<String>(
-                                value: locations.any((item) => item['id'].toString() == _locationId) ? _locationId : null,
-                                decoration: const InputDecoration(labelText: 'Standort', border: OutlineInputBorder()),
-                                items: locations.map((location) => DropdownMenuItem<String>(
-                                  value: location['id'].toString(),
-                                  child: Text(location['name'].toString()),
-                                )).toList(),
-                                onChanged: _activeEntryId == null ? (value) => setState(() => _locationId = value) : null,
-                              ),
-                              const SizedBox(height: 12),
-                              TextField(
-                                controller: _notesController,
-                                enabled: _activeEntryId == null,
-                                maxLines: 2,
-                                decoration: const InputDecoration(labelText: 'Tätigkeit / Notiz', border: OutlineInputBorder()),
-                              ),
-                              const SizedBox(height: 16),
-                              if (_activeEntryId == null)
-                                FilledButton.icon(
-                                  onPressed: _saving ? null : _startWork,
-                                  icon: const Icon(Icons.play_arrow),
-                                  label: const Text('Arbeitszeit starten'),
-                                )
-                              else
-                                FilledButton.icon(
-                                  onPressed: _saving ? null : _stopWork,
-                                  icon: const Icon(Icons.stop),
-                                  label: const Text('Arbeitszeit beenden'),
-                                ),
-                            ],
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.error_outline, size: 48),
+                    const SizedBox(height: 12),
+                    Text(_error!, textAlign: TextAlign.center),
+                    const SizedBox(height: 12),
+                    FilledButton.icon(
+                      onPressed: _loadData,
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Erneut versuchen'),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          : RefreshIndicator(
+              onRefresh: _loadData,
+              child: ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const Text(
+                            'Arbeitszeit erfassen',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
+                          const SizedBox(height: 16),
+                          DropdownButtonFormField<String>(
+                            value: _employeeId,
+                            decoration: const InputDecoration(
+                              labelText: 'Mitarbeiter',
+                              border: OutlineInputBorder(),
+                            ),
+                            items: _employees
+                                .map(
+                                  (employee) => DropdownMenuItem<String>(
+                                    value: employee['id'].toString(),
+                                    child: Text(
+                                      '${employee['name']} – ${employee['rolle'] ?? 'Mitarbeiter'}',
+                                    ),
+                                  ),
+                                )
+                                .toList(),
+                            onChanged: _activeEntryId == null
+                                ? (value) => setState(() => _employeeId = value)
+                                : null,
+                          ),
+                          const SizedBox(height: 12),
+                          DropdownButtonFormField<String>(
+                            value: _customerId,
+                            decoration: const InputDecoration(
+                              labelText: 'Kunde',
+                              border: OutlineInputBorder(),
+                            ),
+                            items: _customers
+                                .map(
+                                  (customer) => DropdownMenuItem<String>(
+                                    value: customer['id'].toString(),
+                                    child: Text(
+                                      (customer['name'] ??
+                                              customer['firmenname'] ??
+                                              'Kunde')
+                                          .toString(),
+                                    ),
+                                  ),
+                                )
+                                .toList(),
+                            onChanged: _activeEntryId == null
+                                ? (value) => setState(() {
+                                    _customerId = value;
+                                    _locationId = null;
+                                  })
+                                : null,
+                          ),
+                          const SizedBox(height: 12),
+                          DropdownButtonFormField<String>(
+                            value:
+                                locations.any(
+                                  (item) =>
+                                      item['id'].toString() == _locationId,
+                                )
+                                ? _locationId
+                                : null,
+                            decoration: const InputDecoration(
+                              labelText: 'Standort',
+                              border: OutlineInputBorder(),
+                            ),
+                            items: locations
+                                .map(
+                                  (location) => DropdownMenuItem<String>(
+                                    value: location['id'].toString(),
+                                    child: Text(location['name'].toString()),
+                                  ),
+                                )
+                                .toList(),
+                            onChanged: _activeEntryId == null
+                                ? (value) => setState(() => _locationId = value)
+                                : null,
+                          ),
+                          const SizedBox(height: 12),
+                          TextField(
+                            controller: _notesController,
+                            enabled: _activeEntryId == null,
+                            maxLines: 2,
+                            decoration: const InputDecoration(
+                              labelText: 'Tätigkeit / Notiz',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          if (_activeEntryId == null)
+                            FilledButton.icon(
+                              onPressed: _saving ? null : _startWork,
+                              icon: const Icon(Icons.play_arrow),
+                              label: const Text('Arbeitszeit starten'),
+                            )
+                          else
+                            FilledButton.icon(
+                              onPressed: _saving ? null : _stopWork,
+                              icon: const Icon(Icons.stop),
+                              label: const Text('Arbeitszeit beenden'),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Letzte Zeiteinträge',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  if (_entries.isEmpty)
+                    const Card(
+                      child: Padding(
+                        padding: EdgeInsets.all(24),
+                        child: Center(child: Text('Noch keine Zeiteinträge.')),
+                      ),
+                    )
+                  else
+                    ..._entries.map(
+                      (entry) => Card(
+                        child: ListTile(
+                          leading: Icon(
+                            entry['end_zeit'] == null
+                                ? Icons.timer
+                                : Icons.check_circle,
+                            color: entry['end_zeit'] == null
+                                ? Colors.orange
+                                : Colors.green,
+                          ),
+                          title: Text(
+                            '${_employeeName(entry['mitarbeiter_id']?.toString())} – ${_locationName(entry['standort_id']?.toString())}',
+                          ),
+                          subtitle: Text(
+                            '${_customerName(_locations.cast<Map<String, dynamic>?>().firstWhere((l) => l?['id']?.toString() == entry['standort_id']?.toString(), orElse: () => null)?['kunden_id']?.toString())} • ${_formatDuration(_duration(entry))}\n${entry['notiz'] ?? ''}',
+                          ),
+                          isThreeLine: true,
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      const Text('Letzte Zeiteinträge', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 8),
-                      if (_entries.isEmpty)
-                        const Card(child: Padding(padding: EdgeInsets.all(24), child: Center(child: Text('Noch keine Zeiteinträge.'))))
-                      else
-                        ..._entries.map((entry) => Card(
-                          child: ListTile(
-                            leading: Icon(entry['end_zeit'] == null ? Icons.timer : Icons.check_circle, color: entry['end_zeit'] == null ? Colors.orange : Colors.green),
-                            title: Text('${_employeeName(entry['mitarbeiter_id']?.toString())} – ${_locationName(entry['standort_id']?.toString())}'),
-                            subtitle: Text('${_customerName(_locations.cast<Map<String, dynamic>?>().firstWhere((l) => l?['id']?.toString() == entry['standort_id']?.toString(), orElse: () => null)?['kunden_id']?.toString())} • ${_formatDuration(_duration(entry))}\n${entry['notiz'] ?? ''}'),
-                            isThreeLine: true,
-                          ),
-                        )),
-                    ],
-                  ),
-                ),
+                    ),
+                ],
+              ),
+            ),
     );
   }
 }
