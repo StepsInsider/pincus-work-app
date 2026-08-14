@@ -6,6 +6,7 @@ import 'photo_screen.dart';
 import 'services_screen.dart';
 import 'team_screen.dart';
 import 'time_tracking_screen.dart';
+import '../features/jokes/presentation/joke_page.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -38,6 +39,8 @@ class DashboardScreen extends StatelessWidget {
                     Colors.purple, const TeamScreen()),
                 _card(context, 'Pincus KI', Icons.auto_awesome_outlined,
                     Colors.teal, const AiChatPage()),
+                _card(context, 'Witze', Icons.emoji_emotions_outlined,
+                    Colors.brown, const JokePage()),
               ],
             );
           },
