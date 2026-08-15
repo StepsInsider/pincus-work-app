@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/joke_service.dart';
 
-final jokeServiceProvider = Provider<JokeService>((ref) => const JokeService());
+final jokeServiceProvider = Provider<JokeService>((ref) => JokeService());
 final randomJokeProvider = FutureProvider.autoDispose<Map<String, dynamic>>(
   (ref) => ref.read(jokeServiceProvider).fetchRandomJoke(),
 );
