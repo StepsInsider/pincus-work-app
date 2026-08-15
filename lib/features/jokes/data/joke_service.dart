@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 
 class JokeService {
   final http.Client _client;
-  const JokeService({http.Client? client}) : _client = client ?? const http.Client();
+  const JokeService({http.Client? client}) : _client = client ?? http.Client();
 
   /// Fetches a random joke from the public Official Joke API.
   /// Throws on non-200 or on timeout.
