@@ -13,7 +13,17 @@ class DashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('Pincus Work – Innenansicht')),
+        appBar: AppBar(
+          toolbarHeight: 72,
+          titleSpacing: 16,
+          title: Row(
+            children: [
+              Image.asset('assets/images/logo.png', height: 48),
+              const SizedBox(width: 16),
+              const Expanded(child: Text('Pincus Work – Innenansicht')),
+            ],
+          ),
+        ),
         body: LayoutBuilder(
           builder: (context, constraints) {
             final columns = constraints.maxWidth >= 1200
