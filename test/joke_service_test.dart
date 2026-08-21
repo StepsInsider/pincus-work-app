@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
-
 import 'package:pincus_work/features/jokes/data/joke_service.dart';
 
 class _FakeClient extends http.BaseClient {
@@ -32,6 +31,7 @@ void main() {
     });
     final client = _FakeClient(http.Response(payload, 200));
     final svc = JokeService(client: client);
+
     final joke = await svc.fetchRandomJoke();
 
     expect(joke['setup'], 'Setup');
