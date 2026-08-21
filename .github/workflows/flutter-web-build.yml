@@ -26,24 +26,55 @@ jobs:
           cache: true
 
       - name: Flutter Version
-        run: flutter --version
+        run: |
+          set -euo pipefail
+          flutter --version
+          dart --version
 
       - name: Install Dependencies
-        run: flutter pub get
+        run: |
+          set -euo pipefail
+          flutter pub get
 
       - name: Analyze Code
-        run: flutter analyze
+        run: |
+          set -euo pipefail
+          flutter analyze
 
       - name: Run Tests
-        run: flutter test
+        run: |
+          set -euo pipefail
+          flutter test
+
+      - name: Validate Supabase Configuration
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          set -euo pipefail
+          test -n "$SUPABASE_URL" || { echo "ERROR: SUPABASE_URL secret is not configured"; exit 1; }
+          test -n "$SUPABASE_PUBLISHABLE_KEY" || { echo "ERROR: SUPABASE_PUBLISHABLE_KEY secret is not configured"; exit 1; }
+          echo "Supabase configuration secrets are present."
 
       - name: Build Web
-        run: >-
-          flutter build web --release
-          --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL }}
-          --dart-define=SUPABASE_PUBLISHABLE_KEY=${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          set -euo pipefail
+          flutter build web --release \
+            --dart-define=SUPABASE_URL="$SUPABASE_URL" \
+            --dart-define=SUPABASE_PUBLISHABLE_KEY="$SUPABASE_PUBLISHABLE_KEY"
+
+      - name: Verify Build Output
+        run: |
+          set -euo pipefail
+          test -f build/web/index.html
+          test -d build/web/assets
+          echo "Flutter web build output verified."
 
       - name: Upload Build Artifact
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: flutter-web-build
