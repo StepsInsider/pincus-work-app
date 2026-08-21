@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - audit-v2-20260821
+      - fix/ci-build-20260821
   pull_request:
     branches:
       - main
