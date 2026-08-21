@@ -193,7 +193,7 @@ class _TimeTrackingScreenState extends State<TimeTrackingScreen> {
   String _formatDuration(Duration duration) {
     final hours = duration.inHours;
     final minutes = duration.inMinutes.remainder(60).abs();
-    return '${hours} Std. ${minutes.toString().padLeft(2, '0')} Min.';
+    return '$hours Std. ${minutes.toString().padLeft(2, '0')} Min.';
   }
 
   @override

@@ -8,12 +8,17 @@ class LeadsRepository {
   final SupabaseClient _client;
 
   Future<List<Lead>> fetchLeads({String? status}) async {
-    var query = _client.from('leads').select().order('created_at', ascending: false);
-    if (status != null && status.isNotEmpty) {
-      query = query.eq('status', status);
-    }
+    final rows = status != null && status.isNotEmpty
+        ? await _client
+            .from('leads')
+            .select()
+            .eq('status', status)
+            .order('created_at', ascending: false)
+        : await _client
+            .from('leads')
+            .select()
+            .order('created_at', ascending: false);
 
-    final rows = await query;
     return rows.map(Lead.fromMap).toList(growable: false);
   }
 

@@ -5,31 +5,42 @@ on:
     branches:
       - main
       - audit-v2-20260821
-      - fix/ci-build-20260821
+      - fix/ci-harden
   pull_request:
     branches:
       - main
 
+permissions:
+  contents: read
+
 jobs:
   build:
+    name: Analyze, Test and Build Flutter Web
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Flutter
+      - name: Setup Flutter 3.44.4
         uses: subosito/flutter-action@v2
         with:
           flutter-version: "3.44.4"
           channel: stable
           cache: true
 
-      - name: Flutter Version
+      - name: Show Flutter and Dart Versions
         run: |
           set -euo pipefail
           flutter --version
           dart --version
+
+      - name: Verify Lockfile
+        run: |
+          set -euo pipefail
+          test -f pubspec.yaml
+          test -f pubspec.lock
+          echo "pubspec.yaml and pubspec.lock found."
 
       - name: Install Dependencies
         run: |
@@ -46,15 +57,24 @@ jobs:
           set -euo pipefail
           flutter test
 
-      - name: Validate Supabase Configuration
+      - name: Validate Supabase Secrets
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
         run: |
           set -euo pipefail
-          test -n "$SUPABASE_URL" || { echo "ERROR: SUPABASE_URL secret is not configured"; exit 1; }
-          test -n "$SUPABASE_PUBLISHABLE_KEY" || { echo "ERROR: SUPABASE_PUBLISHABLE_KEY secret is not configured"; exit 1; }
-          echo "Supabase configuration secrets are present."
+
+          if [ -z "$SUPABASE_URL" ]; then
+            echo "ERROR: SUPABASE_URL secret is missing."
+            exit 1
+          fi
+
+          if [ -z "$SUPABASE_PUBLISHABLE_KEY" ]; then
+            echo "ERROR: SUPABASE_PUBLISHABLE_KEY secret is missing."
+            exit 1
+          fi
+
+          echo "Supabase secrets are configured."
 
       - name: Build Web
         env:
@@ -62,16 +82,17 @@ jobs:
           SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
         run: |
           set -euo pipefail
+
           flutter build web --release \
             --dart-define=SUPABASE_URL="$SUPABASE_URL" \
             --dart-define=SUPABASE_PUBLISHABLE_KEY="$SUPABASE_PUBLISHABLE_KEY"
 
-      - name: Verify Build Output
+      - name: Verify Web Build
         run: |
           set -euo pipefail
           test -f build/web/index.html
           test -d build/web/assets
-          echo "Flutter web build output verified."
+          echo "Flutter Web build verified successfully."
 
       - name: Upload Build Artifact
         if: success()
@@ -79,3 +100,5 @@ jobs:
         with:
           name: flutter-web-build
           path: build/web
+          if-no-files-found: error
+

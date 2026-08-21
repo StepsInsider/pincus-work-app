@@ -10,7 +10,7 @@ class _FakeClient extends http.BaseClient {
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) {
-    final stream = Stream.fromIterable([response.bodyBytes]);
+    final stream = Stream<List<int>>.value(response.bodyBytes);
     return Future.value(
       http.StreamedResponse(
         stream,
