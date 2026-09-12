@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../features/ai/presentation/ai_chat_page.dart';
+import 'baustellen_screen.dart';
 import 'customers_screen.dart';
 import 'leads_screen.dart';
 import 'photo_screen.dart';
@@ -57,6 +58,8 @@ class DashboardScreen extends StatelessWidget {
               children: [
                 _card(context, 'Kunden & Standorte', Icons.business_outlined,
                     Colors.indigo, const CustomersScreen()),
+                _card(context, 'Baustellen', Icons.construction_outlined,
+                    Colors.brown, const BaustellenScreen()),
                 _card(context, 'Zeiterfassung', Icons.timer_outlined,
                     Colors.orange, const TimeTrackingScreen()),
                 _card(context, 'Baustellen-Fotos', Icons.camera_alt_outlined,
