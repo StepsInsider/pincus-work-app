@@ -1,29 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../models/customer.dart';
+import '../models/core_customer.dart';
+import '../models/core_location.dart';
+import '../providers/core_providers.dart';
 
-class CustomersScreen extends StatefulWidget {
+class CustomersScreen extends ConsumerStatefulWidget {
   const CustomersScreen({super.key});
 
   @override
-  State<CustomersScreen> createState() => _CustomersScreenState();
+  ConsumerState<CustomersScreen> createState() => _CustomersScreenState();
 }
 
-class _CustomersScreenState extends State<CustomersScreen> {
-  final _supabase = Supabase.instance.client;
+class _CustomersScreenState extends ConsumerState<CustomersScreen> {
   final _searchController = TextEditingController();
-
-  List<Customer> _customers = [];
-  Map<String, List<CustomerLocation>> _locations = {};
-  bool _loading = true;
-  String? _error;
   String _search = '';
 
   @override
   void initState() {
     super.initState();
-    _loadCustomers();
     _searchController.addListener(() {
       setState(() => _search = _searchController.text.trim().toLowerCase());
     });
@@ -35,169 +30,77 @@ class _CustomersScreenState extends State<CustomersScreen> {
     super.dispose();
   }
 
-  Future<void> _loadCustomers() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-    try {
-      final customerRows = await _supabase
-          .from('kunden')
-          .select(
-            'id,name,firmenname,ansprechpartner,contact_person,phone,telefon,email,address,strasse,notes,company_id',
-          )
-          .order('name', ascending: true);
-      final locationRows = await _supabase
-          .from('standorte')
-          .select('id,kunden_id,name,strasse,plz,ort,notizen,aktiv')
-          .eq('aktiv', true)
-          .order('name', ascending: true);
-
-      final customers = (customerRows as List)
-          .map((row) => Customer.fromMap(Map<String, dynamic>.from(row)))
-          .toList();
-      final locations = (locationRows as List)
-          .map(
-            (row) => CustomerLocation.fromMap(Map<String, dynamic>.from(row)),
-          )
-          .fold<Map<String, List<CustomerLocation>>>({}, (map, location) {
-            map.putIfAbsent(location.customerId, () => []).add(location);
-            return map;
-          });
-
-      if (!mounted) return;
-      setState(() {
-        _customers = customers;
-        _locations = locations;
-        _loading = false;
-      });
-    } catch (error) {
-      if (!mounted) return;
-      setState(() {
-        _error = 'Kunden und Standorte konnten nicht geladen werden: $error';
-        _loading = false;
-      });
-    }
+  Future<void> _refresh() async {
+    ref.invalidate(coreCustomersProvider);
+    ref.invalidate(coreLocationsProvider);
+    await Future.wait([
+      ref.read(coreCustomersProvider.future),
+      ref.read(coreLocationsProvider.future),
+    ]);
   }
 
-  List<Customer> get _filteredCustomers {
-    if (_search.isEmpty) return _customers;
-    return _customers.where((customer) {
-      final locations = _locations[customer.id] ?? const <CustomerLocation>[];
-      final haystack = [
-        customer.name,
-        customer.contactPerson ?? '',
-        customer.phone ?? '',
-        customer.email ?? '',
-        ...locations.map(
-          (location) => '${location.name} ${location.addressLine}',
-        ),
-      ].join(' ').toLowerCase();
-      return haystack.contains(_search);
-    }).toList();
-  }
-
-  Future<void> _showCustomerDialog({Customer? customer}) async {
-    final nameController = TextEditingController(text: customer?.name ?? '');
-    final contactController = TextEditingController(
-      text: customer?.contactPerson ?? '',
-    );
-    final phoneController = TextEditingController(text: customer?.phone ?? '');
-    final emailController = TextEditingController(text: customer?.email ?? '');
-    final addressController = TextEditingController(
-      text: customer?.address ?? '',
-    );
-    final notesController = TextEditingController(text: customer?.notes ?? '');
+  Future<void> _showCustomerDialog({CoreCustomer? customer}) async {
+    final name = TextEditingController(text: customer?.name ?? '');
+    final contact = TextEditingController(text: customer?.contactPerson ?? '');
+    final phone = TextEditingController(text: customer?.phone ?? '');
+    final email = TextEditingController(text: customer?.email ?? '');
+    final address = TextEditingController(text: customer?.address ?? '');
+    final notes = TextEditingController(text: customer?.notes ?? '');
 
     final saved = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: Text(customer == null ? 'Kunde anlegen' : 'Kunde bearbeiten'),
         content: SizedBox(
           width: 520,
           child: SingleChildScrollView(
             child: Column(
               children: [
-                TextField(
-                  controller: nameController,
-                  decoration: const InputDecoration(labelText: 'Kundenname *'),
-                ),
-                TextField(
-                  controller: contactController,
-                  decoration: const InputDecoration(
-                    labelText: 'Ansprechpartner',
-                  ),
-                ),
-                TextField(
-                  controller: phoneController,
-                  decoration: const InputDecoration(labelText: 'Telefon'),
-                ),
-                TextField(
-                  controller: emailController,
-                  decoration: const InputDecoration(labelText: 'E-Mail'),
-                ),
-                TextField(
-                  controller: addressController,
-                  decoration: const InputDecoration(labelText: 'Adresse'),
-                ),
-                TextField(
-                  controller: notesController,
-                  maxLines: 3,
-                  decoration: const InputDecoration(labelText: 'Notizen'),
-                ),
+                TextField(controller: name, decoration: const InputDecoration(labelText: 'Kundenname *')),
+                TextField(controller: contact, decoration: const InputDecoration(labelText: 'Ansprechpartner')),
+                TextField(controller: phone, decoration: const InputDecoration(labelText: 'Telefon')),
+                TextField(controller: email, decoration: const InputDecoration(labelText: 'E-Mail')),
+                TextField(controller: address, decoration: const InputDecoration(labelText: 'Adresse')),
+                TextField(controller: notes, maxLines: 3, decoration: const InputDecoration(labelText: 'Notizen')),
               ],
             ),
           ),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Abbrechen'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Abbrechen')),
           FilledButton(
             onPressed: () async {
-              final name = nameController.text.trim();
-              if (name.isEmpty) return;
+              if (name.text.trim().isEmpty) return;
               try {
-                final userId = _supabase.auth.currentUser?.id;
-                if (userId == null) throw Exception('Bitte zuerst anmelden.');
-                final profile = await _supabase
-                    .from('profiles')
-                    .select('company_id')
-                    .eq('id', userId)
-                    .maybeSingle();
-                final companyId =
-                    profile?['company_id']?.toString() ?? customer?.companyId;
-                if (customer == null && companyId == null) {
-                  throw Exception(
-                    'Dem Benutzer ist noch kein Unternehmen zugeordnet.',
-                  );
-                }
-                final payload = <String, dynamic>{
-                  'name': name,
-                  'contact_person': contactController.text.trim(),
-                  'phone': phoneController.text.trim(),
-                  'email': emailController.text.trim(),
-                  'address': addressController.text.trim(),
-                  'notes': notesController.text.trim(),
-                };
-                if (companyId != null) payload['company_id'] = companyId;
+                final repo = ref.read(coreCustomerRepositoryProvider);
+                final companyId = customer?.companyId ?? await repo.currentCompanyId();
+                if (companyId == null) throw Exception('Dem Benutzer ist noch kein Unternehmen zugeordnet.');
+
                 if (customer == null) {
-                  await _supabase.from('kunden').insert(payload);
+                  await repo.create(CoreCustomer(
+                    id: '',
+                    companyId: companyId,
+                    name: name.text.trim(),
+                    contactPerson: contact.text.trim().isEmpty ? null : contact.text.trim(),
+                    phone: phone.text.trim().isEmpty ? null : phone.text.trim(),
+                    email: email.text.trim().isEmpty ? null : email.text.trim(),
+                    address: address.text.trim().isEmpty ? null : address.text.trim(),
+                    notes: notes.text.trim().isEmpty ? null : notes.text.trim(),
+                  ));
                 } else {
-                  await _supabase
-                      .from('kunden')
-                      .update(payload)
-                      .eq('id', customer.id);
+                  await repo.update(customer.id, {
+                    'name': name.text.trim(),
+                    'contact_person': contact.text.trim(),
+                    'phone': phone.text.trim(),
+                    'email': email.text.trim(),
+                    'address': address.text.trim(),
+                    'notes': notes.text.trim(),
+                  });
                 }
-                if (context.mounted) {
-                  Navigator.pop(context, true);
-                }
+                if (dialogContext.mounted) Navigator.pop(dialogContext, true);
               } catch (error) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Speichern fehlgeschlagen: $error')),
-                  );
+                if (dialogContext.mounted) {
+                  ScaffoldMessenger.of(dialogContext).showSnackBar(SnackBar(content: Text('Speichern fehlgeschlagen: $error')));
                 }
               }
             },
@@ -207,125 +110,65 @@ class _CustomersScreenState extends State<CustomersScreen> {
       ),
     );
 
-    nameController.dispose();
-    contactController.dispose();
-    phoneController.dispose();
-    emailController.dispose();
-    addressController.dispose();
-    notesController.dispose();
-    if (saved == true) {
-      await _loadCustomers();
+    for (final controller in [name, contact, phone, email, address, notes]) {
+      controller.dispose();
     }
+    if (saved == true) await _refresh();
   }
 
-  Future<void> _showLocationDialog(
-    Customer customer, {
-    CustomerLocation? location,
-  }) async {
-    final nameController = TextEditingController(text: location?.name ?? '');
-    final streetController = TextEditingController(
-      text: location?.street ?? '',
-    );
-    final postcodeController = TextEditingController(
-      text: location?.postcode ?? '',
-    );
-    final cityController = TextEditingController(text: location?.city ?? '');
-    final notesController = TextEditingController(text: location?.notes ?? '');
+  Future<void> _showLocationDialog(CoreCustomer customer, {CoreLocation? location}) async {
+    final name = TextEditingController(text: location?.name ?? '');
+    final street = TextEditingController(text: location?.street ?? '');
+    final postcode = TextEditingController(text: location?.postcode ?? '');
+    final city = TextEditingController(text: location?.city ?? '');
+    final notes = TextEditingController(text: location?.notes ?? '');
 
     final saved = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          location == null ? 'Standort anlegen' : 'Standort bearbeiten',
-        ),
+      builder: (dialogContext) => AlertDialog(
+        title: Text(location == null ? 'Standort anlegen' : 'Standort bearbeiten'),
         content: SizedBox(
           width: 520,
           child: SingleChildScrollView(
             child: Column(
               children: [
-                InputDecorator(
-                  decoration: const InputDecoration(labelText: 'Kunde'),
-                  child: Text(customer.name),
-                ),
-                TextField(
-                  controller: nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Standortname *',
-                  ),
-                ),
-                TextField(
-                  controller: streetController,
-                  decoration: const InputDecoration(
-                    labelText: 'Straße / Hausnummer',
-                  ),
-                ),
-                TextField(
-                  controller: postcodeController,
-                  decoration: const InputDecoration(labelText: 'PLZ'),
-                ),
-                TextField(
-                  controller: cityController,
-                  decoration: const InputDecoration(labelText: 'Ort'),
-                ),
-                TextField(
-                  controller: notesController,
-                  maxLines: 3,
-                  decoration: const InputDecoration(labelText: 'Notizen'),
-                ),
+                InputDecorator(decoration: const InputDecoration(labelText: 'Kunde'), child: Text(customer.name)),
+                TextField(controller: name, decoration: const InputDecoration(labelText: 'Standortname *')),
+                TextField(controller: street, decoration: const InputDecoration(labelText: 'Straße / Hausnummer')),
+                TextField(controller: postcode, decoration: const InputDecoration(labelText: 'PLZ')),
+                TextField(controller: city, decoration: const InputDecoration(labelText: 'Ort')),
+                TextField(controller: notes, maxLines: 3, decoration: const InputDecoration(labelText: 'Notizen')),
               ],
             ),
           ),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Abbrechen'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Abbrechen')),
           FilledButton(
             onPressed: () async {
-              final name = nameController.text.trim();
-              if (name.isEmpty) return;
+              if (name.text.trim().isEmpty) return;
               try {
-                final userId = _supabase.auth.currentUser?.id;
-                if (userId == null) throw Exception('Bitte zuerst anmelden.');
-                final profile = await _supabase
-                    .from('profiles')
-                    .select('company_id')
-                    .eq('id', userId)
-                    .maybeSingle();
-                final companyId =
-                    profile?['company_id']?.toString() ?? customer.companyId;
-                if (companyId == null) {
-                  throw Exception(
-                    'Dem Benutzer ist noch kein Unternehmen zugeordnet.',
-                  );
-                }
-                final payload = {
-                  'company_id': companyId,
-                  'kunden_id': customer.id,
-                  'name': name,
-                  'strasse': streetController.text.trim(),
-                  'plz': postcodeController.text.trim(),
-                  'ort': cityController.text.trim(),
-                  'notizen': notesController.text.trim(),
-                  'aktiv': true,
-                };
+                final repo = ref.read(coreLocationRepositoryProvider);
+                final value = CoreLocation(
+                  id: location?.id ?? '',
+                  companyId: customer.companyId,
+                  customerId: customer.id,
+                  name: name.text.trim(),
+                  street: street.text.trim().isEmpty ? null : street.text.trim(),
+                  postcode: postcode.text.trim().isEmpty ? null : postcode.text.trim(),
+                  city: city.text.trim().isEmpty ? null : city.text.trim(),
+                  notes: notes.text.trim().isEmpty ? null : notes.text.trim(),
+                  active: true,
+                );
                 if (location == null) {
-                  await _supabase.from('standorte').insert(payload);
+                  await repo.create(value);
                 } else {
-                  await _supabase
-                      .from('standorte')
-                      .update(payload)
-                      .eq('id', location.id);
+                  await repo.update(location.id, value.toMap());
                 }
-                if (context.mounted) {
-                  Navigator.pop(context, true);
-                }
+                if (dialogContext.mounted) Navigator.pop(dialogContext, true);
               } catch (error) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Speichern fehlgeschlagen: $error')),
-                  );
+                if (dialogContext.mounted) {
+                  ScaffoldMessenger.of(dialogContext).showSnackBar(SnackBar(content: Text('Speichern fehlgeschlagen: $error')));
                 }
               }
             },
@@ -335,91 +178,71 @@ class _CustomersScreenState extends State<CustomersScreen> {
       ),
     );
 
-    nameController.dispose();
-    streetController.dispose();
-    postcodeController.dispose();
-    cityController.dispose();
-    notesController.dispose();
-    if (saved == true) {
-      await _loadCustomers();
+    for (final controller in [name, street, postcode, city, notes]) {
+      controller.dispose();
     }
+    if (saved == true) await _refresh();
   }
 
-  Future<void> _deleteCustomer(Customer customer) async {
+  Future<void> _deleteCustomer(CoreCustomer customer) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Kunde löschen?'),
-        content: Text(
-          '„${customer.name}“ und die zugehörigen Standorte werden gelöscht.',
-        ),
+        content: Text('„${customer.name}“ und die zugehörigen Standorte werden gelöscht.'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Abbrechen'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Löschen'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Abbrechen')),
+          FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Löschen')),
         ],
       ),
     );
     if (confirmed != true) return;
     try {
-      await _supabase.from('kunden').delete().eq('id', customer.id);
-      await _loadCustomers();
+      await ref.read(coreCustomerRepositoryProvider).delete(customer.id);
+      await _refresh();
     } catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Löschen fehlgeschlagen: $error')),
-        );
-      }
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Löschen fehlgeschlagen: $error')));
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final customers = _filteredCustomers;
+    final customersAsync = ref.watch(coreCustomersProvider);
+    final locationsAsync = ref.watch(coreLocationsProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Kunden & Standorte'),
         actions: [
-          IconButton(
-            onPressed: _loadCustomers,
-            tooltip: 'Aktualisieren',
-            icon: const Icon(Icons.refresh),
-          ),
-          IconButton(
-            onPressed: () => _showCustomerDialog(),
-            tooltip: 'Kunde anlegen',
-            icon: const Icon(Icons.person_add_alt_1),
-          ),
+          IconButton(onPressed: _refresh, tooltip: 'Aktualisieren', icon: const Icon(Icons.refresh)),
+          IconButton(onPressed: () => _showCustomerDialog(), tooltip: 'Kunde anlegen', icon: const Icon(Icons.person_add_alt_1)),
         ],
       ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-          ? Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.error_outline, size: 48),
-                    const SizedBox(height: 12),
-                    Text(_error!, textAlign: TextAlign.center),
-                    const SizedBox(height: 12),
-                    FilledButton.icon(
-                      onPressed: _loadCustomers,
-                      icon: const Icon(Icons.refresh),
-                      label: const Text('Erneut versuchen'),
-                    ),
-                  ],
-                ),
-              ),
-            )
-          : Column(
+      body: customersAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, _) => _ErrorView(message: 'Kunden konnten nicht geladen werden: $error', onRetry: _refresh),
+        data: (customers) => locationsAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, _) => _ErrorView(message: 'Standorte konnten nicht geladen werden: $error', onRetry: _refresh),
+          data: (locations) {
+            final byCustomer = <String, List<CoreLocation>>{};
+            for (final location in locations) {
+              byCustomer.putIfAbsent(location.customerId, () => []).add(location);
+            }
+            final filtered = customers.where((customer) {
+              if (_search.isEmpty) return true;
+              final customerLocations = byCustomer[customer.id] ?? const <CoreLocation>[];
+              final haystack = [
+                customer.name,
+                customer.contactPerson ?? '',
+                customer.phone ?? '',
+                customer.email ?? '',
+                ...customerLocations.map((l) => '${l.name} ${l.addressLine}'),
+              ].join(' ').toLowerCase();
+              return haystack.contains(_search);
+            }).toList();
+
+            return Column(
               children: [
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
@@ -428,110 +251,47 @@ class _CustomersScreenState extends State<CustomersScreen> {
                     decoration: InputDecoration(
                       labelText: 'Kunde oder Standort suchen',
                       prefixIcon: const Icon(Icons.search),
-                      suffixIcon: _search.isEmpty
-                          ? null
-                          : IconButton(
-                              onPressed: _searchController.clear,
-                              icon: const Icon(Icons.clear),
-                            ),
+                      suffixIcon: _search.isEmpty ? null : IconButton(onPressed: _searchController.clear, icon: const Icon(Icons.clear)),
                       border: const OutlineInputBorder(),
                     ),
                   ),
                 ),
                 Expanded(
-                  child: customers.isEmpty
+                  child: filtered.isEmpty
                       ? const Center(child: Text('Keine Kunden gefunden.'))
                       : RefreshIndicator(
-                          onRefresh: _loadCustomers,
+                          onRefresh: _refresh,
                           child: ListView.builder(
                             padding: const EdgeInsets.only(bottom: 24),
-                            itemCount: customers.length,
+                            itemCount: filtered.length,
                             itemBuilder: (context, index) {
-                              final customer = customers[index];
-                              final locations =
-                                  _locations[customer.id] ??
-                                  const <CustomerLocation>[];
+                              final customer = filtered[index];
+                              final customerLocations = byCustomer[customer.id] ?? const <CoreLocation>[];
                               return Card(
-                                margin: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 6,
-                                ),
+                                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                                 child: ExpansionTile(
-                                  leading: CircleAvatar(
-                                    child: Text(
-                                      customer.name.isEmpty
-                                          ? '?'
-                                          : customer.name
-                                                .substring(0, 1)
-                                                .toUpperCase(),
-                                    ),
-                                  ),
-                                  title: Text(
-                                    customer.name,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  subtitle: Text(
-                                    '${locations.length} Standort${locations.length == 1 ? '' : 'e'}',
-                                  ),
+                                  leading: CircleAvatar(child: Text(customer.name.isEmpty ? '?' : customer.name.substring(0, 1).toUpperCase())),
+                                  title: Text(customer.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                  subtitle: Text('${customerLocations.length} Standort${customerLocations.length == 1 ? '' : 'e'}'),
                                   children: [
-                                    ...locations.map(
-                                      (location) => ListTile(
-                                        contentPadding: const EdgeInsets.only(
-                                          left: 72,
-                                          right: 16,
-                                        ),
-                                        leading: const Icon(
-                                          Icons.location_on_outlined,
-                                        ),
-                                        title: Text(location.name),
-                                        subtitle: Text(
-                                          location.addressLine.isEmpty
-                                              ? 'Adresse noch nicht hinterlegt'
-                                              : location.addressLine,
-                                        ),
-                                        trailing: IconButton(
-                                          onPressed: () => _showLocationDialog(
-                                            customer,
-                                            location: location,
-                                          ),
-                                          icon: const Icon(Icons.edit_outlined),
-                                        ),
-                                      ),
-                                    ),
+                                    ...customerLocations.map((location) => ListTile(
+                                      contentPadding: const EdgeInsets.only(left: 72, right: 16),
+                                      leading: const Icon(Icons.location_on_outlined),
+                                      title: Text(location.name),
+                                      subtitle: Text(location.addressLine.isEmpty ? 'Adresse noch nicht hinterlegt' : location.addressLine),
+                                      trailing: IconButton(onPressed: () => _showLocationDialog(customer, location: location), icon: const Icon(Icons.edit_outlined)),
+                                    )),
                                     ListTile(
-                                      contentPadding: const EdgeInsets.only(
-                                        left: 72,
-                                        right: 16,
-                                      ),
-                                      leading: const Icon(
-                                        Icons.add_location_alt_outlined,
-                                      ),
+                                      contentPadding: const EdgeInsets.only(left: 72, right: 16),
+                                      leading: const Icon(Icons.add_location_alt_outlined),
                                       title: const Text('Standort hinzufügen'),
-                                      onTap: () =>
-                                          _showLocationDialog(customer),
+                                      onTap: () => _showLocationDialog(customer),
                                     ),
                                     const Divider(height: 1),
-                                    OverflowBar(
-                                      children: [
-                                        TextButton.icon(
-                                          onPressed: () => _showCustomerDialog(
-                                            customer: customer,
-                                          ),
-                                          icon: const Icon(Icons.edit_outlined),
-                                          label: const Text('Kunde bearbeiten'),
-                                        ),
-                                        TextButton.icon(
-                                          onPressed: () =>
-                                              _deleteCustomer(customer),
-                                          icon: const Icon(
-                                            Icons.delete_outline,
-                                          ),
-                                          label: const Text('Löschen'),
-                                        ),
-                                      ],
-                                    ),
+                                    OverflowBar(children: [
+                                      TextButton.icon(onPressed: () => _showCustomerDialog(customer: customer), icon: const Icon(Icons.edit_outlined), label: const Text('Bearbeiten')),
+                                      TextButton.icon(onPressed: () => _deleteCustomer(customer), icon: const Icon(Icons.delete_outline), label: const Text('Löschen')),
+                                    ]),
                                   ],
                                 ),
                               );
@@ -540,12 +300,33 @@ class _CustomersScreenState extends State<CustomersScreen> {
                         ),
                 ),
               ],
-            ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showCustomerDialog(),
-        icon: const Icon(Icons.person_add_alt_1),
-        label: const Text('Kunde'),
+            );
+          },
+        ),
       ),
     );
   }
+}
+
+class _ErrorView extends StatelessWidget {
+  const _ErrorView({required this.message, required this.onRetry});
+  final String message;
+  final Future<void> Function() onRetry;
+
+  @override
+  Widget build(BuildContext context) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.error_outline, size: 48),
+              const SizedBox(height: 12),
+              Text(message, textAlign: TextAlign.center),
+              const SizedBox(height: 12),
+              FilledButton.icon(onPressed: onRetry, icon: const Icon(Icons.refresh), label: const Text('Erneut versuchen')),
+            ],
+          ),
+        ),
+      );
 }
