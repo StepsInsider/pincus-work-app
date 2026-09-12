@@ -1,11 +1,7 @@
 class CoreCustomer {
-  const CoreCustomer({required this.id, required this.companyId, this.customerNumber, this.customerType = 'private', this.companyName, this.firstName, this.lastName, this.email, this.phone, this.mobile, this.street, this.houseNumber, this.postalCode, this.city, this.notes, this.status = 'active', this.createdAt, this.updatedAt});
-  final String id, companyId;
-  final String? customerNumber, companyName, firstName, lastName, email, phone, mobile, street, houseNumber, postalCode, city, notes;
-  final String customerType, status;
-  final DateTime? createdAt, updatedAt;
-  String get displayName => (companyName?.trim().isNotEmpty == true) ? companyName!.trim() : [firstName, lastName].where((v) => v?.trim().isNotEmpty == true).join(' ').trim();
-  factory CoreCustomer.fromMap(Map<String, dynamic> m) => CoreCustomer(id: m['id'].toString(), companyId: m['company_id'].toString(), customerNumber: m['customer_number']?.toString(), customerType: m['customer_type']?.toString() ?? 'private', companyName: m['company_name']?.toString(), firstName: m['first_name']?.toString(), lastName: m['last_name']?.toString(), email: m['email']?.toString(), phone: m['phone']?.toString(), mobile: m['mobile']?.toString(), street: m['street']?.toString(), houseNumber: m['house_number']?.toString(), postalCode: m['postal_code']?.toString(), city: m['city']?.toString(), notes: m['notes']?.toString(), status: m['status']?.toString() ?? 'active', createdAt: _date(m['created_at']), updatedAt: _date(m['updated_at']));
-  Map<String, dynamic> toMap() => {'company_id': companyId, if (customerNumber != null) 'customer_number': customerNumber, 'customer_type': customerType, if (companyName != null) 'company_name': companyName, if (firstName != null) 'first_name': firstName, if (lastName != null) 'last_name': lastName, if (email != null) 'email': email, if (phone != null) 'phone': phone, if (mobile != null) 'mobile': mobile, if (street != null) 'street': street, if (houseNumber != null) 'house_number': houseNumber, if (postalCode != null) 'postal_code': postalCode, if (city != null) 'city': city, if (notes != null) 'notes': notes, 'status': status};
-  static DateTime? _date(dynamic v) => v == null ? null : DateTime.tryParse(v.toString());
+  const CoreCustomer({required this.id, required this.companyId, required this.name, this.contactPerson, this.phone, this.email, this.address, this.notes});
+  final String id, companyId, name;
+  final String? contactPerson, phone, email, address, notes;
+  factory CoreCustomer.fromMap(Map<String,dynamic> m) => CoreCustomer(id:m['id'].toString(), companyId:m['company_id'].toString(), name:(m['name'] ?? '').toString(), contactPerson:m['contact_person']?.toString(), phone:m['phone']?.toString(), email:m['email']?.toString(), address:m['address']?.toString(), notes:m['notes']?.toString());
+  Map<String,dynamic> toMap()=>{'company_id':companyId,'name':name,if(contactPerson!=null)'contact_person':contactPerson,if(phone!=null)'phone':phone,if(email!=null)'email':email,if(address!=null)'address':address,if(notes!=null)'notes':notes};
 }
