@@ -25,7 +25,7 @@ class CoreCustomerRepository {
   Future<CoreCustomer> get(String id) async => CoreCustomer.fromMap(Map<String, dynamic>.from(await client.from('kunden').select().eq('id', id).single()));
   Future<CoreCustomer> create(CoreCustomer value) async => CoreCustomer.fromMap(Map<String, dynamic>.from(await client.from('kunden').insert(value.toMap()).select().single()));
   Future<CoreCustomer> update(String id, Map<String, dynamic> changes) async => CoreCustomer.fromMap(Map<String, dynamic>.from(await client.from('kunden').update(changes).eq('id', id).select().single()));
-  Future<void> delete(String id) async => client.from('kunden').delete().eq('id', id);
+  Future<void> delete(String id) async { await client.from('kunden').delete().eq('id', id); }
 }
 
 class CoreLocationRepository {
@@ -42,7 +42,7 @@ class CoreLocationRepository {
   Future<CoreLocation> get(String id) async => CoreLocation.fromMap(Map<String, dynamic>.from(await client.from('standorte').select().eq('id', id).single()));
   Future<CoreLocation> create(CoreLocation value) async => CoreLocation.fromMap(Map<String, dynamic>.from(await client.from('standorte').insert(value.toMap()).select().single()));
   Future<CoreLocation> update(String id, Map<String, dynamic> changes) async => CoreLocation.fromMap(Map<String, dynamic>.from(await client.from('standorte').update(changes).eq('id', id).select().single()));
-  Future<void> delete(String id) async => client.from('standorte').delete().eq('id', id);
+  Future<void> delete(String id) async { await client.from('standorte').delete().eq('id', id); }
 }
 
 class CoreBaustelleRepository {
@@ -64,7 +64,7 @@ class CoreBaustelleRepository {
   Future<CoreBaustelle> get(String id) async => CoreBaustelle.fromMap(Map<String, dynamic>.from(await client.from('baustellen').select().eq('id', id).single()));
   Future<CoreBaustelle> create(CoreBaustelle value) async => CoreBaustelle.fromMap(Map<String, dynamic>.from(await client.from('baustellen').insert(value.toMap()).select().single()));
   Future<CoreBaustelle> update(String id, Map<String, dynamic> changes) async => CoreBaustelle.fromMap(Map<String, dynamic>.from(await client.from('baustellen').update(changes).eq('id', id).select().single()));
-  Future<void> delete(String id) async => client.from('baustellen').delete().eq('id', id);
+  Future<void> delete(String id) async { await client.from('baustellen').delete().eq('id', id); }
 }
 
 class CoreEmployeeRepository {
@@ -81,7 +81,7 @@ class CoreOrderRepository {
   Future<CoreOrder> get(String id) async => CoreOrder.fromMap(Map<String, dynamic>.from(await client.from('auftraege').select().eq('id', id).single()));
   Future<CoreOrder> create(CoreOrder value) async => CoreOrder.fromMap(Map<String, dynamic>.from(await client.from('auftraege').insert(value.toMap()).select().single()));
   Future<CoreOrder> update(String id, Map<String, dynamic> changes) async => CoreOrder.fromMap(Map<String, dynamic>.from(await client.from('auftraege').update(changes).eq('id', id).select().single()));
-  Future<void> delete(String id) async => client.from('auftraege').delete().eq('id', id);
+  Future<void> delete(String id) async { await client.from('auftraege').delete().eq('id', id); }
 }
 
 class CoreTimeEntryRepository {
@@ -91,5 +91,5 @@ class CoreTimeEntryRepository {
   Future<CoreTimeEntry> get(String id) async => CoreTimeEntry.fromMap(Map<String, dynamic>.from(await client.from('arbeitszeiten').select().eq('id', id).single()));
   Future<CoreTimeEntry> create(CoreTimeEntry value) async => CoreTimeEntry.fromMap(Map<String, dynamic>.from(await client.from('arbeitszeiten').insert(value.toMap()).select().single()));
   Future<CoreTimeEntry> update(String id, Map<String, dynamic> changes) async => CoreTimeEntry.fromMap(Map<String, dynamic>.from(await client.from('arbeitszeiten').update(changes).eq('id', id).select().single()));
-  Future<void> delete(String id) async => client.from('arbeitszeiten').delete().eq('id', id);
+  Future<void> delete(String id) async { await client.from('arbeitszeiten').delete().eq('id', id); }
 }
